@@ -5,22 +5,22 @@ import pandas as pd
 st.set_page_config(page_title="Match Day Chalkboard", layout="wide")
 
 st.title("⚽ Match Day Chalkboard: Tactics Engine")
-st.write("Edit your starting XI's attributes (1-10 scale) below to generate a data-driven tactical plan.")
+st.write("Edit your 10 outfield players' attributes (1-10 scale) below to generate a data-driven tactical plan. (Goalkeepers excluded from outfield median calculations).")
 
-# 1. Default Roster Data (A starting template so you don't have to type 11 names every time)
+# 1. Default Roster Data (10 Outfield Players Only)
 default_roster = {
-    "Name": ["Starting GK", "Left CB", "Right CB", "Left Back", "Right Back", "Defensive Mid", "Center Mid", "Attacking Mid", "Left Winger", "Right Winger", "Striker"],
-    "Position": ["GK", "CB", "CB", "LB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST"],
-    "Pace": [5, 4, 5, 8, 7, 6, 7, 8, 9, 8, 7],
-    "Passing": [5, 4, 5, 6, 6, 8, 7, 9, 7, 7, 6],
-    "Defending": [8, 9, 8, 7, 7, 8, 6, 4, 3, 4, 3]
+    "Name": ["Left CB", "Right CB", "Left Back", "Right Back", "Defensive Mid", "Center Mid", "Attacking Mid", "Left Winger", "Right Winger", "Striker"],
+    "Position": ["CB", "CB", "LB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST"],
+    "Pace": [4, 5, 8, 7, 6, 7, 8, 9, 8, 7],
+    "Passing": [4, 5, 6, 6, 8, 7, 9, 7, 7, 6],
+    "Defending": [9, 8, 7, 7, 8, 6, 4, 3, 4, 3]
 }
 
 # Create a DataFrame (spreadsheet) from our default data
 df = pd.DataFrame(default_roster)
 
 # 2. Interactive Data Grid
-st.subheader("Starting XI Attributes")
+st.subheader("Outfield Attributes")
 edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
 
 st.divider()
@@ -29,7 +29,7 @@ st.divider()
 if st.button("Run Tactics Analyzer", type="primary"):
     with st.spinner("Crunching the numbers..."):
         
-        # Calculate Team Medians
+        # Calculate Team Medians (Now purely outfield stats)
         median_pace = edited_df["Pace"].median()
         median_passing = edited_df["Passing"].median()
         
@@ -43,7 +43,7 @@ if st.button("Run Tactics Analyzer", type="primary"):
         
         if median_pace >= 7 and slowest_defender >= 6:
             formation = "4-3-3 High Press"
-            reasoning = f"Your median pace is a solid {median_pace}. More importantly, your slowest defender still has a pace of {slowest_defender}, passing the 'Weakest Link' veto. You have the speed at the back to safely lock opponents in their own half."
+            reasoning = f"Your outfield median pace is a solid {median_pace}. More importantly, your slowest defender still has a pace of {slowest_defender}, passing the 'Weakest Link' veto. You have the speed at the back to safely lock opponents in their own half."
         
         elif median_passing >= 7.5:
             formation = "4-2-3-1 Possession"
@@ -65,7 +65,7 @@ if st.button("Run Tactics Analyzer", type="primary"):
         with col1:
             st.metric("Recommended Formation", formation)
         with col2:
-            st.metric("Median Team Pace", f"{median_pace}/10")
+            st.metric("Median Outfield Pace", f"{median_pace}/10")
         with col3:
             st.metric("Weakest Link (Def. Pace)", f"{slowest_defender}/10")
             
