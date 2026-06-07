@@ -27,9 +27,9 @@ edited_df = st.data_editor(
     num_rows="dynamic",
     use_container_width=True,
     column_config={
-        "Name": st.column_config.TextColumn(
+"Name": st.column_config.TextColumn(
             "Player Name", 
-            placeholder="Enter name..."
+            help="Enter the player's name"
         ),
         "Position": st.column_config.SelectboxColumn(
             "Preferred Position",
