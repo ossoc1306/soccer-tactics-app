@@ -7,7 +7,7 @@ st.set_page_config(page_title="Match Day Chalkboard", layout="wide")
 st.title("⚽ Match Day Chalkboard: Auto-Optimizer")
 st.write("Input your squad's ratings. The engine will identify your top talent and build the optimal formation around them.")
 
-# 1. Default Roster Data (No more Starter checkbox)
+# 1. Default Roster Data 
 default_roster = {
     "Name": [""] * 25,
     "Position": [None] * 25, 
@@ -67,27 +67,38 @@ if st.button("Optimize Best XI", type="primary"):
             best_10_outfield = outfielders.head(10)
             best_11 = pd.concat([best_gk, best_10_outfield])
             
-            # Analyze the position spread of the Best 10 Outfielders
-            cb_count = best_10_outfield["Position"].isin(["CB"]).sum()
-            cm_count = best_10_outfield["Position"].isin(["CDM", "CM", "CAM"]).sum()
-            winger_count = best_10_outfield["Position"].isin(["LW", "RW"]).sum()
+            # Analyze the positional QUALITY of the Best 10 Outfielders
+            wingers = best_10_outfield[best_10_outfield["Position"].isin(["LW", "RW"])]
+            winger_avg = wingers["Composite"].mean() if not wingers.empty else 0
+            winger_count = len(wingers)
+            
+            cms = best_10_outfield[best_10_outfield["Position"].isin(["CDM", "CM", "CAM"])]
+            cm_avg = cms["Composite"].mean() if not cms.empty else 0
+            cm_count = len(cms)
+            
+            cbs = best_10_outfield[best_10_outfield["Position"].isin(["CB"])]
+            cb_avg = cbs["Composite"].mean() if not cbs.empty else 0
+            cb_count = len(cbs)
             
             formation = ""
             reasoning = ""
             
-            # Dynamic Tactical Logic Based on Top Personnel
-            if cb_count >= 3:
+            # Dynamic Tactical Logic Based on POSITIONAL QUALITY
+            if cb_count >= 3 and cb_avg >= cm_avg and cb_avg >= winger_avg:
                 formation = "3-5-2 / 5-3-2 Wingback"
-                reasoning = f"Three of your highest-rated overall players are Center Backs. A 3-at-the-back system ensures your best defensive talent is on the pitch simultaneously."
-            elif winger_count == 0 and cm_count >= 4:
-                formation = "4-4-2 Diamond"
-                reasoning = f"Your top talent is heavily concentrated centrally ({cm_count} elite midfielders) with no natural wingers making the cut. The diamond allows you to overload the center of the pitch."
-            elif winger_count >= 2:
+                reasoning = f"Your Center Backs are among the highest-performing units in your Best XI (Avg Score: {cb_avg:.1f}/15). A 3-at-the-back system maximizes this defensive quality."
+            
+            elif cm_avg > winger_avg and cm_count >= 3:
+                formation = "4-4-2 Diamond or 4-3-2-1 Narrow"
+                reasoning = f"Your central midfielders heavily outperform your wide players (CM Avg: {cm_avg:.1f}/15 vs Winger Avg: {winger_avg:.1f}/15). Packing the midfield allows you to control the game through your best players and hide weaknesses out wide."
+            
+            elif winger_avg > cm_avg and winger_count >= 2:
                 formation = "4-3-3 High Press"
-                reasoning = f"You have elite wide players ({winger_count} top wingers) in your best XI. A 4-3-3 gets your best attackers isolated on the flanks while maintaining a balanced midfield."
+                reasoning = f"Your wide players are a major strength compared to the center of the park (Winger Avg: {winger_avg:.1f}/15 vs CM Avg: {cm_avg:.1f}/15). A 4-3-3 isolates these high-quality players on the flanks where they can do the most damage."
+            
             else:
                 formation = "4-2-3-1 Balanced"
-                reasoning = "Your best 10 players represent a highly balanced mix across all lines. The 4-2-3-1 is the most flexible shape to accommodate this spread of talent naturally."
+                reasoning = "Your squad's talent is relatively balanced across all positional units. The 4-2-3-1 is the most flexible shape to accommodate this without exposing any glaring weaknesses."
 
             # Display Results
             st.success("Optimization Complete!")
